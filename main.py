@@ -46,6 +46,27 @@ plt.title('Output Centered')
 plt.xlabel('Time Interval')		##"Interval"??
 #plt.savefig('out_center.png', dpi = 100)
 
+##MAKE WITH fig,ax = plt.figure() COMMAND (TITLES, AXIS LABELS)#
+plt.figure(num = 4, figsize = (9,3))    #plotting whole signal & portions
+plt.subplot(3,1,1)                      #whole
+plt.plot(df['Out'])
+plt.xlim(1,5000)
+#plt.title('Output')
+#plt.ylabel('Out')
+
+plt.subplot(3,1,2)                      #porsion 1
+plt.plot(out[3500:4000])                ##FIX XTICKS
+#plt.title('A porsion of the signal')
+#plt.xlabel('Time Interval')
+#plt.ylabel('Out')
+
+plt.subplot(3,1,3)                      #posion 2
+plt.plot(out[1500:2000])                ##FIX XTICKS
+#plt.title('A porsion of the signal')
+#plt.xlabel('Time Interval')
+#plt.ylabel('Out')
+
+#plt.savefig('porsion.png', dpi = 100)
 #pdf
 mu = mean_est
 
@@ -64,3 +85,17 @@ plt.title('Output Histogram and Normal Destribution PDF')
 plt.xlabel('Output Value')
 
 #_ = plt.savefig('hist.png', dpi = 100)
+
+##FIX THESE
+inp = pd.Series.tolist(df['In']) #Scater Diagrams
+plt.figure(figsize = (12,10))
+plt.scatter(inp[:],out[:])
+plt.title('Scatter Diagram 1')
+plt.xlabel('Input')
+plt.ylabel('Output')
+
+plt.figure(figsize = (12,10))
+plt.scatter(inp[0:200],out[0:200])
+plt.title('Scatter Diagram 2 - first 200 mesurements')
+plt.xlabel('Input')
+plt.ylabel('Output')
