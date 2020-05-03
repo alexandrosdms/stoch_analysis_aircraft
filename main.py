@@ -20,95 +20,137 @@ n = len(df['Out'])
 print('The length of the data is: ' + str(n))
 
 # --------------------------------------INPUT - OUTPUT PLOT----------------------------------------------------#
-plt.figure(num=1, figsize=(12, 6))
-plt.subplot(2, 1, 1)  # INPUT PLOT
-plt.plot(df['In'])
-plt.xlim(1, 5000)
-plt.title('Input - Output')
-plt.ylabel('Input')
+fig, (ax1,ax2) = plt.subplots(nrows = 2, ncols = 1, sharex=True,figsize = (9,6))
+# INPUT PLOT
+ax1.plot(df['In'], label = 'In')
+#ax1.set_xlim(1, 5000)
+ax1.set_ylabel('Accelaration')
+ax1.set_title('Aircraft skeleton data 256Hz')
+ax1.legend()
 
-plt.subplot(2, 1, 2)  # OUTPUT PLOT
-plt.plot(df['Out'])
-plt.xlim(1, 5000)
-plt.ylabel('Output')
-plt.xlabel('Time Interval')  # Check "Interval", Should time be used from frequency (256hz)
+ax2.plot(df['Out'], color  = 'coral', label = 'Output')
+#ax2.set_xlim(1, 5000)
+ax2.set_ylabel('Accelaration')
+ax2.set_xlabel('Time Interval')  # Check "Interval", Should time be used from frequency (256hz)
+ax2.legend()
+plt.tight_layout()
 # plt.savefig('in_out_show.png', dpi = 100)
 # -------------------------------------------------------------------------------------------------------------#
 
 out = pd.Series.tolist(df['Out'])  # make list out of column
-mean_est = sum(out)  # mean estimate
+inp = pd.Series.tolist(df['In'])
+
+m_est_out = sum(out)/n  # mean estimate
+m_est_in = sum(inp)/n  # mean estimate
+
 out_center = []  # initialize empty list
-for index in out:  # fill list
-    out_center.append(index - mean_est)  # center data
+in_center = []
+for i in range(0,5000):  # fill list
+    out_center.append(out[i] - m_est_out)  # center data
+    in_center.append(inp[i]-m_est_in)
 
 # ------------------------------------------CENTERED GRAPHS----------------------------------------------------#
-plt.figure(num=3, figsize=(9, 3), dpi=100.0)  # CENTERED FIGURE
-plt.plot(out_center)
-plt.xlim(1, 5000)
-plt.title('Output Centered')
-plt.xlabel('Time Interval')  # "Interval"??
-# plt.savefig('out_center.png', dpi = 100)
+# CENTERED FIGURE
+fig, (ax1,ax2) = plt.subplots(nrows = 2, ncols = 1, sharex=True, figsize = (9,6))
+# INPUT PLOT
+ax1.plot(in_center, label = 'Input')
+#ax1.set_xlim(1, 5000)
+ax1.set_ylabel('Accelaration')
+ax1.set_title('Aircraft skeleton data 256Hz - Centered Data')
+ax1.legend()
+
+ax2.plot(out_center, color  = 'coral', label = 'Output')
+#ax2.set_xlim(1, 5000)
+ax2.set_ylabel('Accelaration')
+ax2.set_xlabel('Time Interval')  # Check "Interval", Should time be used from frequency (256hz)
+ax2.legend()
+plt.tight_layout()
+# plt.savefig('in_out_show.png', dpi = 100)
 
 # ---------------------------PORSIONS OF THE SIGNAL AND WHOLE SIGNAL--------------------------------------------#
-# MAKE WITH fig,ax = plt.figure() COMMAND (TITLES, AXIS LABELS)
-plt.figure(num=4, figsize=(9, 3))  # plotting whole signal & portions
-plt.subplot(3, 1, 1)  # whole
-plt.plot(df['Out'])
-plt.xlim(1, 5000)
-# plt.title('Output')
-# plt.ylabel('Out')
+def portions(x):
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows = 3, ncols = 1, figsize=(9, 8))
+    ax1.plot(x, label = 'Whole Data')
 
-plt.subplot(3, 1, 2)  # portion 1
-plt.plot(out[3500:3520], 'o-')  # FIX XTICKS
-# plt.title('A portion of the signal')
-# plt.xlabel('Time Interval')
-# plt.ylabel('Out')
+    if x == out:
+        ax1.set_title('Output Data')
+    else:
+        ax1.set_title('Input Data')
+    
+    ax1.set_ylabel('Accelaration')
+    ax1.legend()
+    ax2.plot(x[3500:3521], 'o-',color = 'coral', label = 'Portion 1')  # FIX XTICKS
+    ax2.set_ylabel('Accelaration')
+    ax2.set_xticks(np.arange(0,21,2))
+    ax2.set_xticklabels(np.arange(3500,3521,2))
+    ax2.legend()
 
-plt.subplot(3,1,3)  #potion 2
-plt.plot(out[1500:1540])  # FIX XTICKS
-# plt.title('A porsion of the signal')
-# plt.xlabel('Time Interval')
-# plt.ylabel('Out')
+    ax3.plot(x[1500:1541], 'o-', color = 'tomato', label = 'Portion 2')  # FIX XTICKS
+    ax3.set_xlabel('Time Interval')
+    ax3.set_ylabel('Accelaration')
+    ax3.set_xticks(np.arange(0,41,5))
+    ax3.set_xticklabels(np.arange(1500,1541,5))
+    ax3.legend()
+    # plt.savefig('porsion.png', dpi = 100)
 
-# plt.savefig('porsion.png', dpi = 100)
+portions(out)
+portions(inp)
+print(type(ax1))
 # -------------------------------------------------------------------------------------------------------------#
 
 # -----------------------------------------------------PDF & HIST----------------------------------------------#
-mu = mean_est
+mu1 = m_est_in
+mu2 = m_est_out
 
 # use numpy built in function
-var = 0  # initialize
-for i in out:
-    var = var + (i - mu) ** 2 / (n - 1)  # estimate of variance
+var = (pd.DataFrame.var(df))
+print(var)
+sigma1 = math.sqrt(var[0])  # standard deviation
+sigma2 = math.sqrt(var[1])
 
-sigma = math.sqrt(var)  # standard deviation
 x = np.linspace(-1, 1, 100)
 plt.figure(num=5, figsize=(18, 6))  # histogram
-plt.hist(out, bins=int(np.sqrt(n)),
-         edgecolor='black', density='True')
-plt.plot(x, (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu) / sigma) ** 2),
-         color='red', linewidth=3)  # normal destribution pdf
-plt.title('Output Histogram and Normal Destribution PDF')
+plt.hist(inp, bins=int(np.sqrt(n)),edgecolor='black', density='True', color = '#006B62')
+plt.plot(x, (1 / (sigma1 * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu1) / sigma1) ** 2),'--', linewidth=5, color = 'black')  # normal destribution pdf
+plt.title('Input Histogram and Normal Destribution PDF')
+plt.xlabel('Input Value')
+# _ = plt.savefig('hist_IN.png', dpi = 100)
+        
+plt.figure(num=6, figsize=(18, 6))  # histogram
+plt.hist(out, bins=int(np.sqrt(n)),edgecolor='black', density='True', color = '#6B0047')
+plt.plot(x, (1 / (sigma2 * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu2) / sigma2) ** 2),'--' ,linewidth=5, color = 'black')  # normal destribution pdf         
+plt.title('Output Histogram and Normal Destribution PDF')        
 plt.xlabel('Output Value')
+# _ = plt.savefig('hist_OUT.png', dpi = 100)
 
-# _ = plt.savefig('hist.png', dpi = 100)
+print('Skewness for Input is estimated as: ' + str(df['In'].skew().round(4)))
+print('Skewness for Output is estimated as: ' + str(df['Out'].skew().round(4)))
 # -------------------------------------------------------------------------------------------------------------#
 
 # ------------------------------------------------SCATTER------------------------------------------------------#
-# FIX THESE
-inp = pd.Series.tolist(df['In'])  # Scater Diagrams
-plt.figure(figsize=(12, 10))
-plt.scatter(inp[:], out[:])
-plt.title('Scatter Diagram 1')
-plt.xlabel('Input')
-plt.ylabel('Output')
+import random
 
-plt.figure(figsize=(12, 10))
-plt.scatter(inp[0:200], out[0:200])
-plt.title('Scatter Diagram 2 - first 200 mesurements')
-plt.xlabel('Input')
-plt.ylabel('Output')
-plt.show()
+dummy = True
+def scat_k(x,col): 
+    r = 1
+    plt.figure(figsize = (10,10))
+    for k in [10,100,3000,4500]:
+        plt.subplot(2,2,r)
+        plt.xlabel('x(t-' + str(k) + ')')
+        plt.ylabel('x(t)')
+        plt.title('Scatter ' + str(r))
+        r+=1
+        
+        l=0
+        m=k
+        while m<len(out)-1:
+            plt.scatter(x[l],x[m], color = col)
+            l+=1
+            m+=1
+        plt.tight_layout()
+        
+scat_k(inp, '#B23B7F')
+scat_k(out, '#3B85B2')
 # -------------------------------------------------------------------------------------------------------------#
 
 # -------------------------------------------------AUTOCORRELATION---------------------------------------------#
