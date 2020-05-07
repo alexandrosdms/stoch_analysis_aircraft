@@ -111,14 +111,16 @@ sigma2 = math.sqrt(var[1])
 x = np.linspace(-1, 1, 100)
 plt.figure(num=5, figsize=(18, 6))  # histogram
 plt.hist(inp, bins=int(np.sqrt(n)),edgecolor='black', density='True', color = '#006B62')
-plt.plot(x, (1 / (sigma1 * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu1) / sigma1) ** 2),'--', linewidth=5, color = 'black')  # normal destribution pdf
+plt.plot(x, (1 / (sigma1 * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu1) / sigma1) ** 2),'--', linewidth=5,
+	color = 'black')  # normal destribution pdf
 plt.title('Input Histogram and Normal Destribution PDF')
 plt.xlabel('Input Value')
 # _ = plt.savefig('hist_IN.png', dpi = 100)
         
 plt.figure(num=6, figsize=(18, 6))  # histogram
 plt.hist(out, bins=int(np.sqrt(n)),edgecolor='black', density='True', color = '#6B0047')
-plt.plot(x, (1 / (sigma2 * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu2) / sigma2) ** 2),'--' ,linewidth=5, color = 'black')  # normal destribution pdf         
+plt.plot(x, (1 / (sigma2 * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu2) / sigma2) ** 2),'--' ,linewidth=5,
+	color = 'black')  # normal destribution pdf         
 plt.title('Output Histogram and Normal Destribution PDF')        
 plt.xlabel('Output Value')
 # _ = plt.savefig('hist_OUT.png', dpi = 100)
