@@ -65,6 +65,7 @@ ax2.set_ylabel('Accelaration')
 ax2.set_xlabel('Time Interval')  # Check "Interval", Should time be used from frequency (256hz)
 ax2.legend()
 plt.tight_layout()
+plt.show()
 # plt.savefig('in_out_show.png', dpi = 100)
 
 # ---------------------------PORSIONS OF THE SIGNAL AND WHOLE SIGNAL--------------------------------------------#
@@ -92,6 +93,7 @@ def portions(x):
     ax3.set_xticklabels(np.arange(1500,1541,5))
     ax3.legend()
     # plt.savefig('porsion.png', dpi = 100)
+    plt.show()
 
 portions(out)
 portions(inp)
@@ -116,6 +118,7 @@ plt.plot(x, (1 / (sigma1 * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu1) / s
 plt.title('Input Histogram and Normal Destribution PDF')
 plt.xlabel('Input Value')
 # _ = plt.savefig('hist_IN.png', dpi = 100)
+plt.show()
         
 plt.figure(num=6, figsize=(18, 6))  # histogram
 plt.hist(out, bins=int(np.sqrt(n)),edgecolor='black', density='True', color = '#6B0047')
@@ -124,15 +127,14 @@ plt.plot(x, (1 / (sigma2 * np.sqrt(2 * np.pi))) * np.exp(-1 / 2 * ((x - mu2) / s
 plt.title('Output Histogram and Normal Destribution PDF')        
 plt.xlabel('Output Value')
 # _ = plt.savefig('hist_OUT.png', dpi = 100)
+plt.show()
+
 
 print('Skewness for Input is estimated as: ' + str(df['In'].skew().round(4)))
 print('Skewness for Output is estimated as: ' + str(df['Out'].skew().round(4)))
 # -------------------------------------------------------------------------------------------------------------#
 
 # ------------------------------------------------SCATTER------------------------------------------------------#
-import random
-
-dummy = True
 def scat_k(x,col): 
     r = 1
     plt.figure(figsize = (10,10))
@@ -142,7 +144,6 @@ def scat_k(x,col):
         plt.ylabel('x(t)')
         plt.title('Scatter ' + str(r))
         r+=1
-        
         l=0
         m=k
         while m<len(out)-1:
@@ -150,13 +151,35 @@ def scat_k(x,col):
             l+=1
             m+=1
         plt.tight_layout()
-        
+        plt.show()
 scat_k(inp, '#B23B7F')
 scat_k(out, '#3B85B2')
 # -------------------------------------------------------------------------------------------------------------#
 
 # -------------------------------------------------AUTOCORRELATION---------------------------------------------#
-plt.figure(figsize=(12, 10))
-plt.acorr(out)
+fig, (ax1,ax2) = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize = (12,8))
+_ = ax1.acorr(inp, maxlags = 100)
+
+x = np.linspace(0,101)
+a = 1.96/np.sqrt(n)
+_ = ax1.plot(x, a*x**0, x, -a*x**0, color = 'red')
+ax1.set_xlim(0,100)
+ax1.set_ylim(-1,1)
+ax1.set_xlim(0, 100)
+ax1.set_ylabel('ρ_κ') ### use latex
+ax1.set_title('Autocorrelation of Input Data')
+
+plt.figure(figsize = (12,8))
+_ = ax2.acorr(out, maxlags = 100)
+_ = ax2.plot(x, a*x**0, x, -a*x**0, color = 'red')
+ax2.set_xlim(0,100)
+ax2.set_ylim(-1,1)
+ax2.set_ylabel('ρ_κ') ### use latex
+ax2.set_title('Autocorrelation of Output Data')
+ax2.set_xlabel('Lag κ') ### use latex
+plt.tight_layout()
 plt.show()
 # -------------------------------------------------------------------------------------------------------------#
+# -------------------------------AUTOCORRELATION W CUSTOM FUNCTION---------------------------------------------#
+# -------------------------------------------------------------------------------------------------------------#
+
