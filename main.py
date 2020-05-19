@@ -134,7 +134,8 @@ print('Skewness for Input is estimated as: ' + str(df['In'].skew().round(4)))
 print('Skewness for Output is estimated as: ' + str(df['Out'].skew().round(4)))
 # -------------------------------------------------------------------------------------------------------------#
 
-# ------------------------------------------------SCATTER------------------------------------------------------#
+""" # ------------------------------------------------SCATTER------------------------------------------------------#
+# TOO SLOW
 def scat_k(x,col): 
     r = 1
     plt.figure(figsize = (10,10))
@@ -153,7 +154,7 @@ def scat_k(x,col):
         plt.tight_layout()
         plt.show()
 scat_k(inp, '#B23B7F')
-scat_k(out, '#3B85B2')
+scat_k(out, '#3B85B2')"""
 # -------------------------------------------------------------------------------------------------------------#
 
 # -------------------------------------------------AUTOCORRELATION---------------------------------------------#
@@ -183,3 +184,31 @@ plt.show()
 # -------------------------------AUTOCORRELATION W CUSTOM FUNCTION---------------------------------------------#
 # -------------------------------------------------------------------------------------------------------------#
 
+# -------------------------------------------------DFT---------------------------------------------------------#
+# plt.rcParams['figure.figsize'] = [12, 12]
+# plt.rcParams.update({'font.size'}: 18))
+samp_freq = 256
+
+#DFT
+fig, (ax1, ax2) = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize =(12,8))
+fft1 = np.fft.fft(inp,n)
+fft1_av = np.abs(fft1)
+
+freq = samp_freq/n * np.arange(n)
+L = np.arange(1, np.floor(n/2), dtype = 'int')
+ax1.plot(freq[L],fft1_av[L], LineWidth = 2)
+ax1.set_xlim(0, 128)
+ax1.set_yscale('log')
+ax1.set_title('DFT')
+ax1.set_ylabel("Metro (dB)")
+
+fft2 = np.fft.fft(out,n)
+fft2_av = np.abs(fft2)
+ax2.plot(freq[L],fft2_av[L])
+ax2.set_yscale('log')
+ax2.set_ylabel("Metro (dB)")
+ax2.set_xlabel("Frequency (Hz)")
+
+df = (samp_freq/n)
+print('Sample frequency Is: ' + str(df) + 'Hz')
+# -------------------------------------------------------------------------------------------------------------#
