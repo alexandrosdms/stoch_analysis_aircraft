@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from scipy import signal
 import math
+import random
 
 df = pd.read_csv('data.csv', names=['In', 'Out'])  # data gets saved as dataframe format
 print(df)
@@ -25,13 +26,14 @@ inp = pd.Series.tolist(df['In'])
 
 m_est_out = sum(out)/n  # mean estimate
 m_est_in = sum(inp)/n  # mean estimate
-"""
+
 # --------------------------------------INPUT - OUTPUT PLOT----------------------------------------------------#
 fig, (ax1,ax2) = plt.subplots(nrows = 2, ncols = 1, sharex=True,figsize = (9,6))
 # INPUT PLOT
 ax1.plot(df['In'], label = 'In')
 #ax1.set_xlim(1, 5000)
 ax1.set_ylabel('Accelaration')
+ax1.set_xlim(index[0], index[-1])
 ax1.set_title('Aircraft skeleton data 256Hz')
 ax1.legend()
 
@@ -48,7 +50,6 @@ in_center = []
 for i in range(0,5000):  # fill list
     out_center.append(out[i] - m_est_out)  # center data
     in_center.append(inp[i]-m_est_in)
-
 # ------------------------------------------CENTERED GRAPHS----------------------------------------------------#
 # CENTERED FIGURE
 fig, (ax1,ax2) = plt.subplots(nrows = 2, ncols = 1, sharex=True, figsize = (9,6))
@@ -57,6 +58,7 @@ ax1.plot(in_center, label = 'Input')
 #ax1.set_xlim(1, 5000)
 ax1.set_ylabel('Accelaration')
 ax1.set_title('Aircraft skeleton data 256Hz - Centered Data')
+ax1.set_xlim(index[0], index[-1])
 ax1.legend()
 
 ax2.plot(out_center, color  = 'coral', label = 'Output')
@@ -65,7 +67,6 @@ ax2.set_ylabel('Accelaration')
 ax2.set_xlabel('Time Interval')  # Check "Interval", Should time be used from frequency (256hz)
 ax2.legend()
 plt.tight_layout()
-plt.show()
 # plt.savefig('in_out_show.png', dpi = 100)
 
 # ---------------------------PORSIONS OF THE SIGNAL AND WHOLE SIGNAL--------------------------------------------#
@@ -97,7 +98,6 @@ def portions(x):
 
 portions(out)
 portions(inp)
-print(type(ax1))
 # -------------------------------------------------------------------------------------------------------------#
 
 # -----------------------------------------------------PDF & HIST----------------------------------------------#
@@ -107,8 +107,10 @@ mu2 = m_est_out
 # use numpy built in function
 var = (pd.DataFrame.var(df))
 print(var)
-sigma1 = math.sqrt(var[0])  # standard deviation
-sigma2 = math.sqrt(var[1])
+sigma1 = math.sqrt(var[1])  # standard deviation
+sigma2 = math.sqrt(var[2])
+
+x = np.linspace(-1, 1, 100)
 
 x = np.linspace(-1, 1, 100)
 plt.figure(num=5, figsize=(18, 6))  # histogram
@@ -133,7 +135,7 @@ plt.show()
 print('Skewness for Input is estimated as: ' + str(df['In'].skew().round(4)))
 print('Skewness for Output is estimated as: ' + str(df['Out'].skew().round(4)))
 # -------------------------------------------------------------------------------------------------------------#
-"""
+
 """ # ------------------------------------------------SCATTER------------------------------------------------------#
 # TOO SLOW
 def scat_k(x,col): 
@@ -154,7 +156,7 @@ def scat_k(x,col):
         plt.tight_layout()
         plt.show()
 scat_k(inp, '#B23B7F')
-scat_k(out, '#3B85B2')"""
+scat_k(out, '#3B85B2')
 # -------------------------------------------------------------------------------------------------------------#
 """
 # -------------------------------------------------AUTOCORRELATION---------------------------------------------#
@@ -181,78 +183,65 @@ ax2.set_xlabel('Lag κ') ### use latex
 plt.tight_layout()
 plt.show()
 # -------------------------------------------------------------------------------------------------------------#
-# -------------------------------AUTOCORRELATION W CUSTOM FUNCTION---------------------------------------------#
-# -------------------------------------------------------------------------------------------------------------#
-"""
+
 # -------------------------------------------------DFT---------------------------------------------------------#
-# plt.rcParams['figure.figsize'] = [12, 12]
-# plt.rcParams.update({'font.size'}: 18))
 samp_freq = 256
 
 #DFT
-fig, (ax1, ax2) = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize =(12,8))
+fig, (ax1, ax2) = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize = (12,8))
 fft1 = np.fft.fft(inp,n)
-fft1_av = np.abs(fft1)
+fft1_m = np.abs(fft1)
 
 freq = samp_freq/n * np.arange(n)
 L = np.arange(1, np.floor(n/2), dtype = 'int')
-
-ax1.plot(freq[L],fft1_av[L], LineWidth = 2)
-ax1.set_xlim(0, 128)
+ax1.plot(freq[L],fft1_m[L], LineWidth = 2)
+#ax1.set_xlim(freq[L[0]], freq[L[-1]])
 ax1.set_yscale('log')
 ax1.set_title('DFT')
 ax1.set_ylabel("Metro (dB)")
 
 fft2 = np.fft.fft(out,n)
-fft2_av = np.abs(fft2)
-ax2.plot(freq[L],fft2_av[L])
+fft2_m = np.abs(fft2)
+ax2.plot(freq[L],fft2_m[L])
 ax2.set_yscale('log')
 ax2.set_ylabel("Metro (dB)")
 ax2.set_xlabel("Frequency (Hz)")
 
 df = (samp_freq/n)
 print('Sample frequency Is: ' + str(df) + 'Hz')
+# ------------------------------------------PERIODOGRAM--------------------------------------------------------#
 
+#Periogram
+fig,(ax1, ax2) = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize = (12,8))
 
-for i in (0.5,0.75,0.95):
-    #Periogram
-    fig,(ax1, ax2) = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize = (12,8))
+f, PSD1 = signal.periodogram(inp, fs = samp_freq, detrend=False)
+f, PSD2 = signal.periodogram(out, fs = samp_freq, detrend=False)
 
-    f, PSD1 = signal.periodogram(inp, fs = samp_freq, detrend=False)
-    f, PSD2 = signal.periodogram(out, fs = samp_freq, detrend=False)
+PSD1[0] = (PSD1[0]+PSD1[1])/2
+PSD2[0] = (PSD2[0]+PSD2[1])/2
 
-    PSD1[0] = (PSD1[0]+PSD1[1])/2
-    PSD2[0] = (PSD2[0]+PSD2[1])/2
+#PSD1 = fft1_m**2/n
+#PSD2 = fft2_m**2/n
 
-    #PSD1 = fft1_m**2/n
-    #PSD2 = fft2_m**2/n
+ax1.plot(f,PSD1, LineWidth = 2, color = 'coral')
+#ax1.set_xlim(freq[L[0]], freq[L[-1]])
+ax1.set_yscale('log')
+ax1.set_title('PSD Estimation - Input')
+ax1.set_ylabel("(dB)")
+ax2.plot(f,PSD2, LineWidth = 2, color = 'coral')
+#ax2.set_xlim(freq[L[0]], freq[L[-1]])
+ax2.set_yscale('log')
+ax2.set_title('PSD Estimation - Output')
+ax2.set_ylabel("(dB)")
 
-    ax1.plot(f,PSD1)
-    #ax1.set_xlim(freq[L[0]], freq[L[-1]])
-    ax1.set_yscale('log')
-    ax1.set_title('PSD Estimation - Input')
-    ax1.set_ylabel("(dB)")
-    ax2.plot(f,PSD2)
-    #ax2.set_xlim(freq[L[0]], freq[L[-1]])
-    ax2.set_yscale('log')
-    ax2.set_title('PSD Estimation - Output')
-    ax2.set_ylabel("(dB)")
-    for l in (500,1000,2000):
-        f, PSD1_w = signal.welch(inp, fs = samp_freq, nperseg = l, noverlap = l*i, detrend=False)
-        leg = "Overlap = " + str(i*100) + '%' + 'Segment Length = ' + str(l)
-        ax1.plot(f, PSD1_w, label = leg)
+# -------------------------------------------------------------------------------------------------------------#
 
-        ax1.set_yscale('log')
-        ax1.set_title('PSD Estimation - Input')
-        ax1.set_ylabel("(dB)")
-        ax1.legend()
+# ------------------------------------WELCH/ COMPARE SEGMENT LENGTHS-------------------------------------------#
 
-        f, PSD2_w = signal.welch(out, fs = samp_freq, nperseg = l, noverlap = l*i / 2, detrend=False)
-        ax2.plot(f, PSD2_w, label = leg)
+# -------------------------------------------------------------------------------------------------------------#
 
-        ax2.set_yscale('log')
-        ax2.set_title('PSD Estimation - Input')
-        ax2.set_ylabel("(dB)")
-        ax2.legend()
-    plt.show()
+# ---------------------------------------WELCH/ COMPARE OVERLAPS-----------------------------------------------#
+
+# -------------------------------------------------------------------------------------------------------------#
+
 # -------------------------------------------------------------------------------------------------------------#
