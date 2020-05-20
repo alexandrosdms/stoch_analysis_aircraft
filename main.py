@@ -11,6 +11,7 @@ Stochastic Signals & Systems
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
+from scipy import signal
 import math
 
 df = pd.read_csv('data.csv', names=['In', 'Out'])  # data gets saved as dataframe format
@@ -19,6 +20,12 @@ print(df)
 n = len(df['Out'])
 print('The length of the data is: ' + str(n))
 
+out = pd.Series.tolist(df['Out'])  # make list out of column
+inp = pd.Series.tolist(df['In'])
+
+m_est_out = sum(out)/n  # mean estimate
+m_est_in = sum(inp)/n  # mean estimate
+"""
 # --------------------------------------INPUT - OUTPUT PLOT----------------------------------------------------#
 fig, (ax1,ax2) = plt.subplots(nrows = 2, ncols = 1, sharex=True,figsize = (9,6))
 # INPUT PLOT
@@ -36,13 +43,6 @@ ax2.legend()
 plt.tight_layout()
 # plt.savefig('in_out_show.png', dpi = 100)
 # -------------------------------------------------------------------------------------------------------------#
-
-out = pd.Series.tolist(df['Out'])  # make list out of column
-inp = pd.Series.tolist(df['In'])
-
-m_est_out = sum(out)/n  # mean estimate
-m_est_in = sum(inp)/n  # mean estimate
-
 out_center = []  # initialize empty list
 in_center = []
 for i in range(0,5000):  # fill list
@@ -133,7 +133,7 @@ plt.show()
 print('Skewness for Input is estimated as: ' + str(df['In'].skew().round(4)))
 print('Skewness for Output is estimated as: ' + str(df['Out'].skew().round(4)))
 # -------------------------------------------------------------------------------------------------------------#
-
+"""
 """ # ------------------------------------------------SCATTER------------------------------------------------------#
 # TOO SLOW
 def scat_k(x,col): 
@@ -156,7 +156,7 @@ def scat_k(x,col):
 scat_k(inp, '#B23B7F')
 scat_k(out, '#3B85B2')"""
 # -------------------------------------------------------------------------------------------------------------#
-
+"""
 # -------------------------------------------------AUTOCORRELATION---------------------------------------------#
 fig, (ax1,ax2) = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize = (12,8))
 _ = ax1.acorr(inp, maxlags = 100)
@@ -183,7 +183,7 @@ plt.show()
 # -------------------------------------------------------------------------------------------------------------#
 # -------------------------------AUTOCORRELATION W CUSTOM FUNCTION---------------------------------------------#
 # -------------------------------------------------------------------------------------------------------------#
-
+"""
 # -------------------------------------------------DFT---------------------------------------------------------#
 # plt.rcParams['figure.figsize'] = [12, 12]
 # plt.rcParams.update({'font.size'}: 18))
@@ -196,6 +196,7 @@ fft1_av = np.abs(fft1)
 
 freq = samp_freq/n * np.arange(n)
 L = np.arange(1, np.floor(n/2), dtype = 'int')
+
 ax1.plot(freq[L],fft1_av[L], LineWidth = 2)
 ax1.set_xlim(0, 128)
 ax1.set_yscale('log')
@@ -211,4 +212,47 @@ ax2.set_xlabel("Frequency (Hz)")
 
 df = (samp_freq/n)
 print('Sample frequency Is: ' + str(df) + 'Hz')
+
+
+for i in (0.5,0.75,0.95):
+    #Periogram
+    fig,(ax1, ax2) = plt.subplots(nrows = 2, ncols = 1, sharex = True, figsize = (12,8))
+
+    f, PSD1 = signal.periodogram(inp, fs = samp_freq, detrend=False)
+    f, PSD2 = signal.periodogram(out, fs = samp_freq, detrend=False)
+
+    PSD1[0] = (PSD1[0]+PSD1[1])/2
+    PSD2[0] = (PSD2[0]+PSD2[1])/2
+
+    #PSD1 = fft1_m**2/n
+    #PSD2 = fft2_m**2/n
+
+    ax1.plot(f,PSD1)
+    #ax1.set_xlim(freq[L[0]], freq[L[-1]])
+    ax1.set_yscale('log')
+    ax1.set_title('PSD Estimation - Input')
+    ax1.set_ylabel("(dB)")
+    ax2.plot(f,PSD2)
+    #ax2.set_xlim(freq[L[0]], freq[L[-1]])
+    ax2.set_yscale('log')
+    ax2.set_title('PSD Estimation - Output')
+    ax2.set_ylabel("(dB)")
+    for l in (500,1000,2000):
+        f, PSD1_w = signal.welch(inp, fs = samp_freq, nperseg = l, noverlap = l*i, detrend=False)
+        leg = "Overlap = " + str(i*100) + '%' + 'Segment Length = ' + str(l)
+        ax1.plot(f, PSD1_w, label = leg)
+
+        ax1.set_yscale('log')
+        ax1.set_title('PSD Estimation - Input')
+        ax1.set_ylabel("(dB)")
+        ax1.legend()
+
+        f, PSD2_w = signal.welch(out, fs = samp_freq, nperseg = l, noverlap = l*i / 2, detrend=False)
+        ax2.plot(f, PSD2_w, label = leg)
+
+        ax2.set_yscale('log')
+        ax2.set_title('PSD Estimation - Input')
+        ax2.set_ylabel("(dB)")
+        ax2.legend()
+    plt.show()
 # -------------------------------------------------------------------------------------------------------------#
