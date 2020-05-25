@@ -245,3 +245,62 @@ ax2.set_ylabel("(dB)")
 # -------------------------------------------------------------------------------------------------------------#
 
 # -------------------------------------------------------------------------------------------------------------#
+"""This code was obtained by: https://gist.github.com/ul/05dc52bd6121335c5a8e1acadf31dbd6
+"""
+from scipy.signal import correlate
+
+def acorrBiased(y):
+	"""Obtain the biased autocorrelation and its lags"""
+
+	r = correlate(y,y)/len(y)
+	l = np.arange(-(len(y)-1),len(y))
+	return r,l
+
+# This is a port of the code accompanying Stoica & Moses' "Spectral Analysis of
+# Signals" (Pearson, 2005): http://www2.ece.ohio-state.edu/~randy/SAtext/
+def blackmanTuckey(y,w, Nfft, fs = 1):
+"""Evaluate the Blackman - Tuckey estimator
+Parameters
+----------
+y : array_like
+    Data
+w : array_like
+    Window, of length <= y's
+Nfft : int
+    Desired length of the returned power spectral density estimate. Specifies
+    the FFT-length.
+fs : number, optional
+    Sample rate of y, in samples per second. Used only to scale the returned
+    vector of frequencies.
+Returns
+    -------
+    phi : array
+        Power spectral density estimate. Contains ceil(Nfft/2) samples.
+    f : array
+        Vector of frequencies corresponding to phi.
+
+    References
+    ----------
+    P. Stoica and R. Moses, *Spectral Analysis of Signals* (Pearson, 2005),
+    section 2.5.1. See http://www2.ece.ohio-state.edu/~randy/SAtext/ for original
+    Matlab code. See http://user.it.uu.se/~ps/SAS-new.pdf for book contents.
+"""
+	M = len(w)
+	N = len(y)
+	if M>N:
+		raise ValueError('Window connot be longer than data')
+    
+	r,lags = acorrBiased(y)
+	r = r[np.logical_and(lags >= 0, lags < M)]
+	rw = r*w
+    phi = 2*signal.fft.fft(rw,Nfft).real - rw[0]
+	f = np.arrange(Nfft)/ Nfft
+	return (phi[f < 0.5], f[f < 0.5] * fs)
+
+btWin = hamming(1024*8)
+(pBT, fBT) = blackmanTuckey(out,btWin, 5000, fs)
+
+plt.plot(fBT, db20(pBT))
+plt.xlabel('frequency (Hz)')
+plt.ylabel('spectrum estimate')
+plt.title('Blackman-Tukey spectral estimate, {}-Hamming window'.format(btWin.size))
